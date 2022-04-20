@@ -58,11 +58,16 @@ class Main:
 
     def submit(self):
         hidden_layers = int(self.hidden_layers.get())
-        neurons = int(self.neurons.get())
+
+        neurons = self.neurons.get()
+        neurons = neurons.split(',')
+        neurons = list(map(int, neurons))
+
         eta = float(self.eta.get())
         epochs = int(self.epochs.get())
         bias = int(self.addBias.get())
         activation_fn = self.activation_cb.get()
+        print(neurons)
 
         backPropagation = BackPropagation(hidden_layers, neurons, eta, epochs, bias, activation_fn)
 
