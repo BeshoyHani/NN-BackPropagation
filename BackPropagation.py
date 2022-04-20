@@ -1,5 +1,8 @@
+import random
+
 import numpy as np
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
 
 class BackPropagation:
@@ -18,15 +21,30 @@ class BackPropagation:
         elif activationfn == "Hyperbolic Tangent":
             return (np.exp(net) - np.exp(-net)) / (np.exp(net) + np.exp(-net))
 
-    def label_encode(Y):
+    def label_encode(self, Y):
         for i in range(len(Y)):
-            if Y == "Iris-setosa":
-                Y[0][i] = 1
-            elif Y[0][i] == "Iris-versicolor":
-                Y[0][i] = 2
-            elif Y[0][i] == "Iris-virginica":
-                Y[0][i] = 3
+            if Y.iloc[i] == "Iris-setosa":
+                Y.iloc[i] = 1
+            elif Y.iloc[i] == "Iris-versicolor":
+                Y.iloc[i] = 2
+            elif Y.iloc[i] == "Iris-virginica":
+                Y.iloc[i] = 3
         return Y
+    def initializeNetwork(self,n_inputs):
+        # num of hidden
+        # list number of neurons in each hidden
+        Hidden_Layers = list()
+        for hiddenlayer in range(self.hidden_layers):
+            neruro= [0] * self.neurons[hiddenlayer]
+            Hidden_Layers.append(neruro)
+        # initialize weights
+        Weights = list()
+
+        return Hidden_Layers,Weights
+
+    def backpropagation_algorithm(self, x_train, y_train):
+
+        return
 
     def run_backpropagation(self):
         # Loading data
@@ -36,6 +54,6 @@ class BackPropagation:
         # Ecoding the output
         Y = data.iloc[:, -1]
         Y = self.label_encode(Y)
+        print(Y)
         # splitting Data
-        # X_train, Y_train, X_test, Y_test = self.SplittingData(X, Y)
 
