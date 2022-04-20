@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter.ttk import Combobox
 from BackPropagation import BackPropagation
 
+
 class Main:
     def __init__(self):
         self.window = Tk()
@@ -9,7 +10,8 @@ class Main:
 
         # Number of Hidden Layers
         self.hidden_layers_frame = Frame()
-        self.hidden_layers = self.create_textbox_frame(self.hidden_layers_frame, "Number of hidden layers: ", 5, 1, 1, 0)
+        self.hidden_layers = self.create_textbox_frame(self.hidden_layers_frame, "Number of hidden layers: ", 5, 1, 1,
+                                                       0)
         # create_text_box() takes 1) parent frame 2) label 3) initial value 4) x position 5) y position 6) padding value
 
         # Number of Neurons
