@@ -30,6 +30,20 @@ class BackPropagation:
                 Y.iloc[i, 0] = 3
         return Y
 
+    def SplittingData(self, X, Y):
+        x_train, y_train, x_test, y_test = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+        for i in range(3):
+            X_trainC1, X_testC1, y_trainC1, y_testC1 = train_test_split(X[0 + i * 50:50 + i * 50],
+                                                                        Y[i * 50:50 + i * 50], test_size=0.40,
+                                                                        shuffle=False)
+
+            x_train = x_train.append(X_trainC1, ignore_index=True)
+            y_train = y_train.append(y_trainC1, ignore_index=True)
+            x_test = x_test.append(X_testC1, ignore_index=True)
+            y_test = y_test.append(y_testC1, ignore_index=True)
+
+        return x_train, y_train, x_test, y_test
+
     def initializeNetwork(self, n_inputs):
         # num of hidden
         # list number of neurons in each hidden
@@ -48,25 +62,44 @@ class BackPropagation:
             for j in range(((besh[i] + self.bias) * besh[i + 1])):
                 W.append(random())
             Weights.append(W)
+        print(Weights)
         return Hidden_Layers, Weights
 
-    def backpropagation_algorithm(self, x_train, y_train):
+    def forward_step(self, sample, HD, Weights):
 
-        return
+        # x_train with first Hidden layer
 
-    def SplittingData(self, X, Y):
-        x_train, y_train, x_test, y_test = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
-        for i in range(3):
-            X_trainC1, X_testC1, y_trainC1, y_testC1 = train_test_split(X[0 + i * 50:50 + i * 50],
-                                                                        Y[i * 50:50 + i * 50], test_size=0.40,
-                                                                        shuffle=False)
+        # Hidden (xtrain) with
 
-            x_train = x_train.append(X_trainC1, ignore_index=True)
-            y_train = y_train.append(y_trainC1, ignore_index=True)
-            x_test = x_test.append(X_testC1, ignore_index=True)
-            y_test = y_test.append(y_testC1, ignore_index=True)
+        pass
 
-        return x_train, y_train, x_test, y_test
+    def sigmoid_deriv(self, x):
+        return x * (1 - x)
+
+    def htan(self, x):
+        return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
+
+    def hyper_deriv (self, x):
+        return  - self.htan(x) * self.htan(x)
+
+    def backward_step(self):
+
+        pass
+
+    def update_weights(self):
+
+        pass
+
+    def backpropagation_algorithm(self, x_train, y_train, Hidden_Layers, Weights):
+
+        for i in range(self.epochs):
+            tmp = Hidden_Layers
+            for j in x_train:
+                self.forward_step(x_train[j], tmp, Weights)
+                self.backward_step()
+                self.update_weights()
+
+        return Weights
 
     def run_backpropagation(self):
         # Loading data
@@ -77,6 +110,8 @@ class BackPropagation:
         Y = pd.DataFrame({"Class": data.iloc[:, -1]})
         Y = self.label_encode(Y)
         # Initialize NN
-        Hidden_Layers, Weights = self.initializeNetwork(len(X))
+        Hidden_Layers, Weights = self.initializeNetwork(4)
         # splitting Data
         x_train, y_train, x_test, y_test = self.SplittingData(X, Y)
+        # BP Algorithm
+        upadted_weights = self.backpropagation_algorithm(x_train, y_train, Hidden_Layers, Weights)
