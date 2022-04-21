@@ -16,7 +16,7 @@ class Main:
 
         # Number of Neurons
         self.neurons_frame = Frame()
-        self.neurons = self.create_textbox_frame(self.neurons_frame, "Neurons /hidden layer: ", 5, 2, 1, 7)
+        self.neurons = self.create_textbox_frame(self.neurons_frame, "Neurons /hidden layer: ", "2, 5, 3, 4, 1", 2, 1, 7)
 
         # Learning Rate
         self.eta_frame = Frame()
@@ -67,7 +67,6 @@ class Main:
         epochs = int(self.epochs.get())
         bias = int(self.addBias.get())
         activation_fn = self.activation_cb.get()
-        print(neurons)
 
         backPropagation = BackPropagation(hidden_layers, neurons, eta, epochs, bias, activation_fn)
 
