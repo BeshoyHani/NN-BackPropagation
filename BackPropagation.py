@@ -1,8 +1,9 @@
+import copy
 from random import random
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
-
+from sklearn.preprocessing import OneHotEncoder
 
 class BackPropagation:
     def __init__(self, hidden_layers, neurons, eta, epochs, bias, activation_fn):
@@ -48,13 +49,13 @@ class BackPropagation:
         # num of hidden
         # list number of neurons in each hidden
         Hidden_Layers = list()
-        Hidden_Layers.append([0] * 4 )# Samples
+        Hidden_Layers.append([0] * 4)  # Samples
 
         for hiddenlayer in range(self.hidden_layers):
             neruro = [0] * self.neurons[hiddenlayer]
             Hidden_Layers.append(neruro)
 
-        Hidden_Layers.append([0] * 3) # Output
+        Hidden_Layers.append([0] * 3)  # Output
         print("hidden layers", Hidden_Layers)
         # initialize weights
         besh = [n_inputs]
@@ -65,23 +66,28 @@ class BackPropagation:
             W = list()
             # Generate Random values
             for j in range(besh[i] + self.bias):
-                W.append([random()] * besh[i+1])
+                W.extend([random()] * besh[i + 1])
             Weights.append(W)
-        print( "weights: ", Weights)
+        print("weights: ", Weights)
         return Hidden_Layers, Weights
 
     def forward_step(self, sample, HL, Weights):
 
-        HL[0] = sample
+        HL[0] = list(sample)
         # x_train with first Hidden layer
         for layer in range(1, len(HL)):
             for neuron in range(len(HL[layer])):
-                for w_list in Weights[layer-1]:
-                    for w_vector in w_list:
-                        net = np.dot(HL[layer-1], w_vector)
-                        HL[layer][neuron] = self.activation_function(self.activation_fn, net)
-        print(HL)
-        pass
+                net = 0
+                for i in range(0, len(HL[layer - 1])):
+                    idx = len(HL[layer - 1]) * neuron + i
+                    net += Weights[layer - 1][idx] * HL[layer - 1][i]
+                    # for w_list in Weights[layer-1]:
+                    #     for w_vector in w_list:
+                    #         net = np.dot(HL[layer-1], w_vector)
+                    #         HL[layer][neuron] = self.activation_function(self.activation_fn, net)
+                HL[layer][neuron] = self.activation_function(self.activation_fn, net)
+        # print(HL)
+        return HL
 
     def sigmoid_deriv(self, x):
         return x * (1 - x)
@@ -89,25 +95,51 @@ class BackPropagation:
     def htan(self, x):
         return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
 
-    def hyper_deriv (self, x):
-        return  - self.htan(x) * self.htan(x)
+    def hyper_deriv(self, x):
+        return - self.htan(x) * self.htan(x)
 
-    def backward_step(self):
+    def backward_step(self, Weights, F, y_train):
 
-        pass
+        Sigma = copy.deepcopy(F)
+        n = len(F)
+       # print(y_train)
+        #print(F)
+        for neuron in range(len(F[n - 1])):
+            e = y_train[neuron] - F[n - 1][neuron]
+            fd = F[n - 1][neuron] * (1 - F[n - 1][neuron])
+            Sigma[n - 1][neuron] = e * fd
 
-    def update_weights(self):
+        for layer in reversed(range(1, n - 1)):
+            for neuron in range(len(F[layer])):
+                Sigma[layer][neuron] = 0
+                if self.activation_fn == "Sigmoid":
+                    fd = F[layer][neuron] * (1 - F[layer][neuron])
+                else:
+                    fd = 0
+                for i in range(0, len(F[layer+1])):
+                    idx = len(F[layer]) * i + neuron
+                    Sigma[layer][neuron] += Weights[layer][idx] * Sigma[layer + 1][i]
 
+                Sigma[layer][neuron] *= fd
+
+        return Sigma
+
+    def update_weights(self, Weights , F , S):
+       # print(len(Weights),len(S))
+        for layer in range(0,len(Weights)):
+            for w in range(0,len(Weights[layer])):
+                S_idx = w // len(F[layer])
+                x_idx = w % len(F[layer])
+                Weights[layer][w] += self.eta * F[layer][x_idx] * S[layer+1][S_idx]
         pass
 
     def backpropagation_algorithm(self, x_train, y_train, Hidden_Layers, Weights):
         for i in range(self.epochs):
-            tmp = Hidden_Layers
             for j in range(len(x_train)):
-                self.forward_step(x_train.iloc[j].values, tmp, Weights)
-                self.backward_step()
-                self.update_weights()
-
+                tmp = copy.deepcopy(Hidden_Layers)
+                F = self.forward_step(x_train.iloc[j].values, tmp, Weights)
+                S = self.backward_step(Weights, F, y_train[j])
+                self.update_weights(Weights,F,S)
         return Weights
 
     def run_backpropagation(self):
@@ -117,10 +149,14 @@ class BackPropagation:
         X = data.iloc[:, 0:4]
         # Ecoding the output
         Y = pd.DataFrame({"Class": data.iloc[:, -1]})
-        Y = self.label_encode(Y)
+        # Y = self.label_encode(Y)
         # Initialize NN
         Hidden_Layers, Weights = self.initializeNetwork(4)
         # splitting Data
         x_train, y_train, x_test, y_test = self.SplittingData(X, Y)
+        onehot_encoder = OneHotEncoder(sparse=False)
+        y_train = onehot_encoder.fit_transform(y_train)
+        y_test = onehot_encoder.fit_transform(y_test)
         # BP Algorithm
+
         upadted_weights = self.backpropagation_algorithm(x_train, y_train, Hidden_Layers, Weights)
