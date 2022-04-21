@@ -22,14 +22,15 @@ class BackPropagation:
             return (np.exp(net) - np.exp(-net)) / (np.exp(net) + np.exp(-net))
 
     def label_encode(self, Y):
+        res  = []
         for i in range(len(Y)):
             if Y.iloc[i, 0] == "Iris-setosa":
-                Y.iloc[i, 0] = 1
+                res.append([1,0,0])
             elif Y.iloc[i, 0] == "Iris-versicolor":
-                Y.iloc[i, 0] = 2
+                res.append([0,1,0])
             elif Y.iloc[i, 0] == "Iris-virginica":
-                Y.iloc[i, 0] = 3
-        return Y
+                res.append([0,0,1])
+        return res
 
     def SplittingData(self, X, Y):
         x_train, y_train, x_test, y_test = pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
@@ -81,12 +82,7 @@ class BackPropagation:
                 for i in range(0, len(HL[layer - 1])):
                     idx = len(HL[layer - 1]) * neuron + i
                     net += Weights[layer - 1][idx] * HL[layer - 1][i]
-                    # for w_list in Weights[layer-1]:
-                    #     for w_vector in w_list:
-                    #         net = np.dot(HL[layer-1], w_vector)
-                    #         HL[layer][neuron] = self.activation_function(self.activation_fn, net)
                 HL[layer][neuron] = self.activation_function(self.activation_fn, net)
-        # print(HL)
         return HL
 
     def sigmoid_deriv(self, x):
@@ -99,11 +95,8 @@ class BackPropagation:
         return - self.htan(x) * self.htan(x)
 
     def backward_step(self, Weights, F, y_train):
-
         Sigma = copy.deepcopy(F)
         n = len(F)
-       # print(y_train)
-        #print(F)
         for neuron in range(len(F[n - 1])):
             e = y_train[neuron] - F[n - 1][neuron]
             fd = F[n - 1][neuron] * (1 - F[n - 1][neuron])
@@ -131,15 +124,14 @@ class BackPropagation:
                 S_idx = w // len(F[layer])
                 x_idx = w % len(F[layer])
                 Weights[layer][w] += self.eta * F[layer][x_idx] * S[layer+1][S_idx]
-        pass
+        return Weights
 
     def backpropagation_algorithm(self, x_train, y_train, Hidden_Layers, Weights):
         for i in range(self.epochs):
             for j in range(len(x_train)):
-                tmp = copy.deepcopy(Hidden_Layers)
-                F = self.forward_step(x_train.iloc[j].values, tmp, Weights)
-                S = self.backward_step(Weights, F, y_train[j])
-                self.update_weights(Weights,F,S)
+                F = self.forward_step(x_train.iloc[j].values, copy.deepcopy(Hidden_Layers), Weights)
+                S = self.backward_step(Weights, copy.deepcopy(F), y_train[j])
+                Weights = self.update_weights(Weights,F,S)
         return Weights
 
     def testing (self,x_test , HL ,Weights):
@@ -152,12 +144,13 @@ class BackPropagation:
                     idx = len(HL[layer - 1]) * neuron + i
                     net += Weights[layer - 1][idx] * HL[layer - 1][i]
 
+                HL[layer][neuron] = self.activation_function(self.activation_fn, net)
                 if layer == len(HL) - 1:
-                    y_test.append(net)
+                    y_test.append(HL[layer][neuron])
 
         y=[]
         for i in range(len(y_test)):
-            if i== y_test.index(max(y_test)) :
+            if i == y_test.index(max(y_test)) :
                 y.append(1)
             else :
                 y.append(0)
@@ -176,17 +169,18 @@ class BackPropagation:
         # splitting Data
         x_train, y_train, x_test, y_test = self.SplittingData(X, Y)
         onehot_encoder = OneHotEncoder(sparse=False)
-        y_train = onehot_encoder.fit_transform(y_train)
-        y_test = onehot_encoder.fit_transform(y_test)
+        y_train = self.label_encode(y_train)
+        y_test = self.label_encode(y_test)
         # BP Algorithm
 
         upadted_weights = self.backpropagation_algorithm(x_train, y_train, Hidden_Layers, Weights)
         y_pred = []
         print(type(Hidden_Layers))
         print(type(Weights))
+        print(upadted_weights)
         #print(x_test)
         for i in range(len(x_test)):
-            y_pred.append(self.testing(x_test.iloc[i].values,Hidden_Layers,Weights))
+            y_pred.append(self.testing(x_test.iloc[i].values,copy.deepcopy(Hidden_Layers),upadted_weights))
 
         cnt = 0
         for i in range(0,len(y_pred)):
