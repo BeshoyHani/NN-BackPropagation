@@ -36,7 +36,7 @@ class BackPropagation:
         for i in range(3):
             X_trainC1, X_testC1, y_trainC1, y_testC1 = train_test_split(X[0 + i * 50:50 + i * 50],
                                                                         Y[i * 50:50 + i * 50], test_size=0.40,
-                                                                        shuffle=False)
+                                                                        shuffle=True)
 
             x_train = x_train.append(X_trainC1, ignore_index=True)
             y_train = y_train.append(y_trainC1, ignore_index=True)
@@ -142,6 +142,27 @@ class BackPropagation:
                 self.update_weights(Weights,F,S)
         return Weights
 
+    def testing (self,x_test , HL ,Weights):
+        y_test = []
+        HL[0] = list(x_test)
+        for layer in range(1, len(HL)):
+            for neuron in range(len(HL[layer])):
+                net = 0
+                for i in range(0, len(HL[layer - 1])):
+                    idx = len(HL[layer - 1]) * neuron + i
+                    net += Weights[layer - 1][idx] * HL[layer - 1][i]
+
+                if layer == len(HL) - 1:
+                    y_test.append(net)
+
+        y=[]
+        for i in range(len(y_test)):
+            if i== y_test.index(max(y_test)) :
+                y.append(1)
+            else :
+                y.append(0)
+        return y
+
     def run_backpropagation(self):
         # Loading data
         data = pd.read_csv('IrisData.csv')
@@ -160,3 +181,20 @@ class BackPropagation:
         # BP Algorithm
 
         upadted_weights = self.backpropagation_algorithm(x_train, y_train, Hidden_Layers, Weights)
+        y_pred = []
+        print(type(Hidden_Layers))
+        print(type(Weights))
+        #print(x_test)
+        for i in range(len(x_test)):
+            y_pred.append(self.testing(x_test.iloc[i].values,Hidden_Layers,Weights))
+
+        cnt = 0
+        for i in range(0,len(y_pred)):
+            s1 = y_pred[i].index(max(y_pred[i]))
+            s2 = list(y_test[i]).index(max(list(y_test[i])))
+
+            if s1 == s2 :
+                cnt+=1
+
+        print(cnt , len(y_pred))
+        print(cnt / len(y_pred))
