@@ -14,7 +14,7 @@ class BackPropagation:
         self.activation_fn = activation_fn  # Text containing Name of the Activation Function
         self.run_backpropagation()
 
-    def activation_function(activationfn, net):
+    def activation_function(self, activationfn, net):
         if activationfn == "Sigmoid":
             return 1 / (1 + np.exp(-net))
         elif activationfn == "Hyperbolic Tangent":
@@ -48,9 +48,14 @@ class BackPropagation:
         # num of hidden
         # list number of neurons in each hidden
         Hidden_Layers = list()
+        Hidden_Layers.append([0] * 4 )# Samples
+
         for hiddenlayer in range(self.hidden_layers):
             neruro = [0] * self.neurons[hiddenlayer]
             Hidden_Layers.append(neruro)
+
+        Hidden_Layers.append([0] * 3) # Output
+        print("hidden layers", Hidden_Layers)
         # initialize weights
         besh = [n_inputs]
         besh.extend(self.neurons)
@@ -59,18 +64,23 @@ class BackPropagation:
         for i in range(len(besh) - 1):
             W = list()
             # Generate Random values
-            for j in range(((besh[i] + self.bias) * besh[i + 1])):
-                W.append(random())
+            for j in range(besh[i] + self.bias):
+                W.append([random()] * besh[i+1])
             Weights.append(W)
-        print(Weights)
+        print( "weights: ", Weights)
         return Hidden_Layers, Weights
 
-    def forward_step(self, sample, HD, Weights):
+    def forward_step(self, sample, HL, Weights):
 
+        HL[0] = sample
         # x_train with first Hidden layer
-
-        # Hidden (xtrain) with
-
+        for layer in range(1, len(HL)):
+            for neuron in range(len(HL[layer])):
+                for w_list in Weights[layer-1]:
+                    for w_vector in w_list:
+                        net = np.dot(HL[layer-1], w_vector)
+                        HL[layer][neuron] = self.activation_function(self.activation_fn, net)
+        print(HL)
         pass
 
     def sigmoid_deriv(self, x):
@@ -91,11 +101,10 @@ class BackPropagation:
         pass
 
     def backpropagation_algorithm(self, x_train, y_train, Hidden_Layers, Weights):
-
         for i in range(self.epochs):
             tmp = Hidden_Layers
-            for j in x_train:
-                self.forward_step(x_train[j], tmp, Weights)
+            for j in range(len(x_train)):
+                self.forward_step(x_train.iloc[j].values, tmp, Weights)
                 self.backward_step()
                 self.update_weights()
 
